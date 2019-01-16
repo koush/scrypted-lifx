@@ -5,6 +5,7 @@ function VirtualDevice(light) {
   this.light = light;
 }
 
+
 VirtualDevice.prototype.turnOn = function() {
   this.light.on();
 }
@@ -15,6 +16,11 @@ VirtualDevice.prototype.turnOff = function() {
 
 VirtualDevice.prototype.setLevel = function(level) {
   this.light.maxIR(level);
+}
+
+// need to implement state polling or something
+VirtualDevice.prototype.isOn = function() {
+  return false;
 }
 
 VirtualDevice.prototype.getLevel = function() {
