@@ -1,3 +1,4 @@
+require('scrypted-deploy/polyfill/buffer');
 var LifxClient = require('node-lifx').Client;
 var client = new LifxClient();
 

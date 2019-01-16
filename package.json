@@ -1,6 +1,6 @@
 {
    "name": "@scrypted/lifx",
-   "version": "0.0.4",
+   "version": "0.0.6",
    "description": "A Lifx plugin for Scrypted",
    "author": "Scrypted",
    "license": "Apache",
@@ -23,7 +23,7 @@
       "type": "DeviceProvider"
    },
    "devDependencies": {
-      "scrypted-deploy": "^1.1.7",
+      "scrypted-deploy": "^1.2.1",
       "webpack-merge": "^4.2.1"
    },
    "dependencies": {
