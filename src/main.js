@@ -1,4 +1,3 @@
-require('scrypted-deploy/polyfill/buffer');
 var LifxClient = require('node-lifx').Client;
 var client = new LifxClient();
 
@@ -16,6 +15,10 @@ VirtualDevice.prototype.turnOff = function() {
 }
 
 VirtualDevice.prototype.setLevel = function(level) {
+  this.light.getState((err, state) => {
+    var color = state.color;
+    this.light.color(color.hue, color.saturation, level, color.kelvin);
+  })
   this.light.maxIR(level);
 }
 
@@ -53,12 +56,8 @@ function componentToHex(c) {
   return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex(r, g, b) {
-  return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
-
 VirtualDevice.prototype.setRgb = function(r, g, b) {
-  this.light.colorRgbHex(rgbToHex(r, g, b));
+  this.light.colorRgb(r, g, b);
 }
 
 VirtualDevice.prototype.setHsv = function(h, s, v) {
