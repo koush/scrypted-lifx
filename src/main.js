@@ -22,7 +22,7 @@ VirtualDevice.prototype.setLevel = function(level) {
 }
 
 VirtualDevice.prototype.setTemperature = function(kelvin) {
-  this.light.color(0, 1, 1, kelvin);
+  this.light.color(0, 100, 100, kelvin);
 }
 
 // need to implement state polling or something
