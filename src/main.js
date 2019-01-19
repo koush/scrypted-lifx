@@ -22,7 +22,7 @@ VirtualDevice.prototype.setLevel = function(level) {
 }
 
 VirtualDevice.prototype.setTemperature = function(kelvin) {
-  this.light.color(0, 100, 100, kelvin);
+  this.light.color(0, 0, 100, kelvin);
 }
 
 // need to implement state polling or something
@@ -54,17 +54,24 @@ VirtualDevice.prototype.getTemperatureMaxK = function() {
   return 9000;
 }
 
-function componentToHex(c) {
-  var hex = c.toString(16);
-  return hex.length == 1 ? "0" + hex : hex;
-}
-
 VirtualDevice.prototype.setRgb = function(r, g, b) {
   this.light.colorRgb(r, g, b);
 }
 
 VirtualDevice.prototype.setHsv = function(h, s, v) {
   this.light.color(h, Math.round(s * 100), Math.round(v * 100));
+}
+
+VirtualDevice.prototype.getRgb = function() {
+  return [0, 0, 0];
+}
+
+VirtualDevice.prototype.getHsv = function() {
+  return [0, 0 ,0];
+}
+
+VirtualDevice.prototype.getTemperature = function() {
+  return 0;
 }
 
 function DeviceProvider() {
@@ -87,7 +94,9 @@ DeviceProvider.prototype.newLight = function(light) {
 
     var interfaces = ['OnOff', 'Brightness'];
     if (data.productFeatures && data.productFeatures.color) {
-      interfaces.push('ColorSetting');
+      interfaces.push('ColorSettingRgb');
+      interfaces.push('ColorSettingHsv');
+      interfaces.push('ColorSettingTemperature');
     }
 
     this.lights[light.id] = light;
