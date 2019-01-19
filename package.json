@@ -19,7 +19,7 @@
       "plugin"
    ],
    "scrypted": {
-      "name": "Lifx Controller",
+      "name": "LIFX Controller",
       "type": "DeviceProvider"
    },
    "devDependencies": {
