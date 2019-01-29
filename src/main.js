@@ -101,7 +101,7 @@ VirtualDevice.prototype.setLevel = function (level) {
 }
 
 VirtualDevice.prototype.setTemperature = function (kelvin) {
-  this.light.color(0, 0, 100, kelvin, this.refresher);
+  this.light.color(0, 0, 100, kelvin, undefined, this.refresher);
 }
 
 
