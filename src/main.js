@@ -47,10 +47,10 @@ const States = {
   ColorSettingTemperature: function(s) {
     return (s && s.color && s.color.kelvin) || 0;
   },
-  ColorSettingHsv: function(s) {
-    var h = (s && s.color && s.color.hue) || 0;
-    var s = ((s && s.color && s.color.saturation) || 0) / 100;
-    var v = ((s && s.color && s.color.brightness) || 0) / 100;
+  ColorSettingHsv: function(st) {
+    var h = (st && st.color && st.color.hue) || 0;
+    var s = ((st && st.color && st.color.saturation) || 0) / 100;
+    var v = ((st && st.color && st.color.brightness) || 0) / 100;
     return { h, s, v };
   },
   ColorSettingRgb: function(s) {
