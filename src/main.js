@@ -106,11 +106,11 @@ VirtualDevice.prototype.setTemperature = function (kelvin) {
 
 
 VirtualDevice.prototype.setRgb = function (r, g, b) {
-  this.light.colorRgb(r, g, b, this.refresher);
+  this.light.colorRgb(r, g, b, undefined, this.refresher);
 }
 
 VirtualDevice.prototype.setHsv = function (h, s, v) {
-  this.light.color(h, Math.round(s * 100), Math.round(v * 100), this.refresher);
+  this.light.color(h, Math.round(s * 100), Math.round(v * 100), undefined, undefined, this.refresher);
 }
 
 // getters
