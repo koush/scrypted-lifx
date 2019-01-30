@@ -1,6 +1,6 @@
 {
    "name": "@scrypted/lifx",
-   "version": "0.1.7",
+   "version": "0.1.8",
    "description": "A Lifx plugin for Scrypted",
    "author": "Scrypted",
    "license": "Apache",
@@ -21,10 +21,12 @@
    "scrypted": {
       "name": "LIFX Controller",
       "type": "Device",
-      "interfaces": ["DeviceProvider"]
+      "interfaces": [
+         "DeviceProvider"
+      ]
    },
    "devDependencies": {
-      "scrypted-deploy": "^1.2.3",
+      "scrypted-deploy": "^1.2.6",
       "webpack-merge": "^4.2.1"
    },
    "dependencies": {
