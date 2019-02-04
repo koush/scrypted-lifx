@@ -5,9 +5,7 @@ function VirtualDevice(light, events) {
   this.light = light;
   this.events = events;
 
-  this.refresher = (err) => {
-    this.refresh();
-  }
+  this.refresher = (err) => this.refresh();
 }
 
 // h, s, v are all expected to be between 0 and 1.
