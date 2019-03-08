@@ -1,7 +1,7 @@
 var LifxClient = require('node-lifx').Client;
 var client = new LifxClient();
 
-function VirtualDevice(light, events) {
+function LifxDevice(light, events) {
   this.light = light;
   this.events = events;
 
@@ -58,7 +58,15 @@ const States = {
   }
 }
 
-VirtualDevice.prototype.refresh = function (cb) {
+LifxDevice.prototype.refresh = function() {
+  this._refresh();
+}
+
+LifxDevice.prototype.getRefreshFrequency = function() {
+  return 5;
+}
+
+LifxDevice.prototype._refresh = function (cb) {
   this.light.getState((err, state) => {
     if (state) {
       var oldState = this.state;
@@ -83,84 +91,84 @@ VirtualDevice.prototype.refresh = function (cb) {
 
 // setters
 
-VirtualDevice.prototype.turnOn = function () {
+LifxDevice.prototype.turnOn = function () {
   this.light.on(0, this.refresher);
 }
 
-VirtualDevice.prototype.turnOff = function () {
+LifxDevice.prototype.turnOff = function () {
   this.light.off(0, this.refresher);
 }
 
-VirtualDevice.prototype.setLevel = function (level) {
+LifxDevice.prototype.setLevel = function (level) {
   this.light.getState((err, state) => {
     var color = state.color;
     this.light.color(color.hue, color.saturation, level, color.kelvin, this.refresher);
   })
 }
 
-VirtualDevice.prototype.setTemperature = function (kelvin) {
+LifxDevice.prototype.setTemperature = function (kelvin) {
   this.light.color(0, 0, 100, kelvin, undefined, this.refresher);
 }
 
 
-VirtualDevice.prototype.setRgb = function (r, g, b) {
+LifxDevice.prototype.setRgb = function (r, g, b) {
   this.light.colorRgb(r, g, b, undefined, this.refresher);
 }
 
-VirtualDevice.prototype.setHsv = function (h, s, v) {
+LifxDevice.prototype.setHsv = function (h, s, v) {
   this.light.color(h, Math.round(s * 100), Math.round(v * 100), undefined, undefined, this.refresher);
 }
 
 // getters
 
-VirtualDevice.prototype.isOn = function () {
+LifxDevice.prototype.isOn = function () {
   return States.OnOff(this.state);
 }
 
-VirtualDevice.prototype.getLevel = function () {
+LifxDevice.prototype.getLevel = function () {
   return States.Brightness(this.state);
 }
 
-VirtualDevice.prototype.supportsSpectrumRgb = function () {
+LifxDevice.prototype.supportsSpectrumRgb = function () {
   return true;
 }
 
-VirtualDevice.prototype.supportsSpectrumHsv = function () {
+LifxDevice.prototype.supportsSpectrumHsv = function () {
   return true;
 }
 
-VirtualDevice.prototype.supportsTemperature = function () {
+LifxDevice.prototype.supportsTemperature = function () {
   return true;
 }
 
-VirtualDevice.prototype.getTemperatureMinK = function () {
+LifxDevice.prototype.getTemperatureMinK = function () {
   return 2500;
 }
 
-VirtualDevice.prototype.getTemperatureMaxK = function () {
+LifxDevice.prototype.getTemperatureMaxK = function () {
   return 9000;
 }
-VirtualDevice.prototype.getRgb = function () {
+LifxDevice.prototype.getRgb = function () {
   return States.ColorSettingRgb(this.state);
 }
 
-VirtualDevice.prototype.getHsv = function () {
+LifxDevice.prototype.getHsv = function () {
   return States.ColorSettingHsv(this.state);
 }
 
-VirtualDevice.prototype.getTemperature = function () {
+LifxDevice.prototype.getTemperature = function () {
   return States.ColorSettingTemperature(this.state);
 }
 
-function DeviceProvider() {
+function LifxController() {
   this.lights = {};
 }
 
-DeviceProvider.prototype.getDevice = function (id) {
+LifxController.prototype.getDevice = function (id) {
   return this.lights[id];
 }
 
-DeviceProvider.prototype.newLight = function (light) {
+LifxController.prototype.newLight = function (light) {
   light.getHardwareVersion((err, data) => {
     if (err) {
       log.e(`unable to get product version: ${err}`);
@@ -185,7 +193,7 @@ DeviceProvider.prototype.newLight = function (light) {
     // or HomeKit/Google requests a sync and needs updated state.
     interfaces.push('Refresh');
 
-    var device = this.lights[light.id] = new VirtualDevice(light, events);
+    var device = this.lights[light.id] = new LifxDevice(light, events);
     var info = {
       name: data.productName,
       id: light.id,
@@ -198,10 +206,10 @@ DeviceProvider.prototype.newLight = function (light) {
   });
 }
 
-var deviceProvider = new DeviceProvider();
+var LifxController = new LifxController();
 
-client.on('light-new', deviceProvider.newLight.bind(deviceProvider));
+client.on('light-new', LifxController.newLight.bind(LifxController));
 client.init();
 
 
-export default deviceProvider;
+export default LifxController;
