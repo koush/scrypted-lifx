@@ -27,11 +27,11 @@
       ]
    },
    "devDependencies": {
-      "@scrypted/sdk": "0.0.2",
-      "webpack-merge": "^4.2.1"
+      "@scrypted/sdk": "0.0.5"
    },
    "dependencies": {
       "axios": "^0.18.0",
-      "node-lifx": "github:koush/node-lifx"
+      "node-lifx": "github:koush/node-lifx",
+      "terser": "^3.14.1"
    }
 }
