@@ -210,6 +210,9 @@ var LifxController = new LifxController();
 
 client.on('light-new', LifxController.newLight.bind(LifxController));
 client.init();
+setTimeout(() => {
+  client.stopDiscovery();
+}, 30000)
 
 
 export default LifxController;
