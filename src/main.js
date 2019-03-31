@@ -1,61 +1,35 @@
 var LifxClient = require('node-lifx').Client;
 var client = new LifxClient();
+import sdk from '@scrypted/sdk';
+const { deviceManager, log } = sdk;
 
-function LifxDevice(light, events) {
+function LifxDevice(light, device) {
   this.light = light;
-  this.events = events;
+  this.device = device;
+  this.state = deviceManager.getDeviceState(this.light.id);
 
   this.refresher = (err) => this.refresh();
+
+  // wait for this device to be synced, then report the current state.
+  setImmediate(() => this.refresh());
 }
 
-// h, s, v are all expected to be between 0 and 1.
-// the h value expected by scrypted (and google and homekit) is between 0 and 360.
-function HSVtoRGB(h, s, v) {
-  var r, g, b, i, f, p, q, t;
-  if (arguments.length === 1) {
-    s = h.s, v = h.v, h = h.h;
-  }
-  i = Math.floor(h * 6);
-  f = h * 6 - i;
-  p = v * (1 - s);
-  q = v * (1 - f * s);
-  t = v * (1 - (1 - f) * s);
-  switch (i % 6) {
-    case 0: r = v, g = t, b = p; break;
-    case 1: r = q, g = v, b = p; break;
-    case 2: r = p, g = v, b = t; break;
-    case 3: r = p, g = q, b = v; break;
-    case 4: r = t, g = p, b = v; break;
-    case 5: r = v, g = p, b = q; break;
-  }
-  return {
-    r: Math.round(r * 255),
-    g: Math.round(g * 255),
-    b: Math.round(b * 255)
-  };
-}
-
-const States = {
-  OnOff: function (s) {
-    return !!(s && s.power);
+const StateSetters = {
+  OnOff: function (s, state) {
+    state.on = !!(s && s.power);
   },
-  Brightness: function (s) {
-    return (s && s.color && s.color.brightness) || 0;
+  Brightness: function (s, state) {
+    state.brightness = (s && s.color && s.color.brightness) || 0;
   },
-  ColorSettingTemperature: function(s) {
-    return (s && s.color && s.color.kelvin) || 0;
+  ColorSettingTemperature: function(s, state) {
+    state.colorTemperature = (s && s.color && s.color.kelvin) || 0;
   },
-  ColorSettingHsv: function(st) {
+  ColorSettingHsv: function(st, state) {
     var h = (st && st.color && st.color.hue) || 0;
     var s = ((st && st.color && st.color.saturation) || 0) / 100;
     var v = ((st && st.color && st.color.brightness) || 0) / 100;
-    return { h, s, v };
+    state.hsv = { h, s, v };
   },
-  ColorSettingRgb: function(s) {
-    var { h, s, v } = States.ColorSettingHsv(s);
-    var { r, g, b } = HSVtoRGB(h / 360, s, v);
-    return { r, g, b };
-  }
 }
 
 LifxDevice.prototype.refresh = function() {
@@ -69,18 +43,8 @@ LifxDevice.prototype.getRefreshFrequency = function() {
 LifxDevice.prototype._refresh = function (cb) {
   this.light.getState((err, state) => {
     if (state) {
-      var oldState = this.state;
-      this.state = state;
-
-      // prevent events from being fired on startup (oldState is not defined)
-      if (oldState) {
-        for (var stateGetter of this.events) {
-          var newValue = States[stateGetter](state);
-          // don't bother detecting if the state has not changed. denoising will be done
-          // at the platform level. this is also necessary for external calls to
-          // listen for set events, even if nothing has changed.
-          deviceManager.onDeviceEvent(this.light.id, stateGetter, newValue)
-        }
+      for (var event of this.device.events) {
+        StateSetters[event](state, this.state);
       }
     }
     if (cb) {
@@ -110,35 +74,8 @@ LifxDevice.prototype.setTemperature = function (kelvin) {
   this.light.color(0, 0, 100, kelvin, undefined, this.refresher);
 }
 
-
-LifxDevice.prototype.setRgb = function (r, g, b) {
-  this.light.colorRgb(r, g, b, undefined, this.refresher);
-}
-
 LifxDevice.prototype.setHsv = function (h, s, v) {
   this.light.color(h, Math.round(s * 100), Math.round(v * 100), undefined, undefined, this.refresher);
-}
-
-// getters
-
-LifxDevice.prototype.isOn = function () {
-  return States.OnOff(this.state);
-}
-
-LifxDevice.prototype.getLevel = function () {
-  return States.Brightness(this.state);
-}
-
-LifxDevice.prototype.supportsSpectrumRgb = function () {
-  return true;
-}
-
-LifxDevice.prototype.supportsSpectrumHsv = function () {
-  return true;
-}
-
-LifxDevice.prototype.supportsTemperature = function () {
-  return true;
 }
 
 LifxDevice.prototype.getTemperatureMinK = function () {
@@ -147,17 +84,6 @@ LifxDevice.prototype.getTemperatureMinK = function () {
 
 LifxDevice.prototype.getTemperatureMaxK = function () {
   return 9000;
-}
-LifxDevice.prototype.getRgb = function () {
-  return States.ColorSettingRgb(this.state);
-}
-
-LifxDevice.prototype.getHsv = function () {
-  return States.ColorSettingHsv(this.state);
-}
-
-LifxDevice.prototype.getTemperature = function () {
-  return States.ColorSettingTemperature(this.state);
 }
 
 function LifxController() {
@@ -178,7 +104,6 @@ LifxController.prototype.newLight = function (light) {
     // these are the interfaces (capabilities) provided by this bulb
     var interfaces = ['OnOff', 'Brightness'];
     if (data.productFeatures && data.productFeatures.color) {
-      interfaces.push('ColorSettingRgb');
       interfaces.push('ColorSettingHsv');
       interfaces.push('ColorSettingTemperature');
     }
@@ -193,16 +118,17 @@ LifxController.prototype.newLight = function (light) {
     // or HomeKit/Google requests a sync and needs updated state.
     interfaces.push('Refresh');
 
-    var device = this.lights[light.id] = new LifxDevice(light, events);
     var info = {
       name: data.productName,
-      id: light.id,
+      nativeId: light.id,
       interfaces: interfaces,
       events: events,
       type: 'Light',
     };
     log.i(`light found: ${JSON.stringify(info)}`);
-    device.refresh(() => deviceManager.onDeviceDiscovered(info));
+
+    var device = this.lights[light.id] = new LifxDevice(light, info);
+    deviceManager.onDeviceDiscovered(info);
   });
 }
 
