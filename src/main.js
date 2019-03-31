@@ -127,8 +127,8 @@ LifxController.prototype.newLight = function (light) {
     };
     log.i(`light found: ${JSON.stringify(info)}`);
 
-    var device = this.lights[light.id] = new LifxDevice(light, info);
     deviceManager.onDeviceDiscovered(info);
+    this.lights[light.id] = new LifxDevice(light, info);
   });
 }
 
