@@ -66,7 +66,7 @@ LifxDevice.prototype.turnOff = function () {
 LifxDevice.prototype.setBrightness = function (level) {
   this.light.getState((err, state) => {
     var color = state.color;
-    this.light.color(color.hue, color.saturation, level, color.kelvin, this.refresher);
+    this.light.color(color.hue, color.saturation, level, color.kelvin, undefined, this.refresher);
   })
 }
 
