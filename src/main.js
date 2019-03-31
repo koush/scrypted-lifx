@@ -132,13 +132,13 @@ LifxController.prototype.newLight = function (light) {
   });
 }
 
-var LifxController = new LifxController();
+var lifxController = new LifxController();
 
-client.on('light-new', LifxController.newLight.bind(LifxController));
+client.on('light-new', lifxController.newLight.bind(lifxController));
 client.init();
 setTimeout(() => {
   client.stopDiscovery();
 }, 30000)
 
 
-export default LifxController;
+export default lifxController;
