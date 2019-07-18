@@ -43,8 +43,11 @@ LifxDevice.prototype.getRefreshFrequency = function() {
 LifxDevice.prototype._refresh = function (cb) {
   this.light.getState((err, state) => {
     if (state) {
-      for (var event of this.device.events) {
-        StateSetters[event](state, this.state);
+      for (var iface of this.device.interfaces) {
+        var setter = StateSetters[iface];
+        if (setter) {
+          setter(state, this.state);
+        }
       }
     }
     if (cb) {
@@ -107,12 +110,7 @@ LifxController.prototype.newLight = function (light) {
       interfaces.push('ColorSettingHsv');
       interfaces.push('ColorSettingTemperature');
     }
-    // events are optional, and lifx bulbs are reliant on polling (more below on this).
-    // so control through the lifx app itself may not trigger an event,
-    // but events should be triggered when the lifx bulb finishes setting a value.
-    var events = interfaces.slice();
-
-    // as mentioned above, lifx bulbs require polling to get their state. it is not
+    // lifx bulbs require polling to get their state. it is not
     // actively pushed to the controller. implementing the Refresh interface allows
     // Scrypted to poll the device intelligently: such as when the UI is visible,
     // or HomeKit/Google requests a sync and needs updated state.
@@ -122,7 +120,6 @@ LifxController.prototype.newLight = function (light) {
       name: data.productName,
       nativeId: light.id,
       interfaces: interfaces,
-      events: events,
       type: 'Light',
     };
     log.i(`light found: ${JSON.stringify(info)}`);

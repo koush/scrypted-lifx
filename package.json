@@ -1,6 +1,6 @@
 {
    "name": "@scrypted/lifx",
-   "version": "0.2.8",
+   "version": "0.2.9",
    "description": "A Lifx plugin for Scrypted",
    "author": "Scrypted",
    "license": "Apache",
@@ -27,7 +27,7 @@
       ]
    },
    "devDependencies": {
-      "@scrypted/sdk": "0.0.16"
+      "@scrypted/sdk": "0.0.27"
    },
    "dependencies": {
       "axios": "^0.18.0",
